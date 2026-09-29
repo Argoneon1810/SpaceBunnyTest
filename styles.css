@@ -231,6 +231,18 @@
     border-radius: 6px;
   }
 
+  /* The command-palette modifier differs per platform: ⌘K on Apple, Ctrl K
+     elsewhere. The label is generated content keyed off [data-os], set in <head>,
+     so it is correct on first paint with no flash and no duplicated markup.
+     Keep this rule next to the kbd block above — same cascade layer. */
+  kbd[data-kbd="palette"]::after {
+    content: "Ctrl K";
+  }
+
+  :root[data-os="apple"] kbd[data-kbd="palette"]::after {
+    content: "⌘K";
+  }
+
   .skip {
     position: fixed;
     top: 0.6rem; left: 50%;

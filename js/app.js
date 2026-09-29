@@ -33,7 +33,6 @@ const el = {
   settingsBtn: $('#settingsBtn'),
   settings: $('#settings'),
   cmdBtn: $('#cmdBtn'),
-  cmdKbd: $('#cmdKbd'),
   streak: $('#streakPill'),
   taskForm: $('#taskForm'),
   taskInput: $('#taskInput'),
@@ -799,8 +798,9 @@ function commitAndRender() {
 }
 subscribe(commitAndRender);
 
-const isApple = /mac|iphone|ipad/i.test(navigator.userAgent);
-el.cmdKbd.textContent = isApple ? '⌘K' : 'Ctrl K';
+// The command-palette modifier label is platform-dependent and is emitted by CSS
+// (kbd[data-kbd="palette"]::after) off the [data-os] flag set in <head> — that
+// way it is right on first paint instead of flashing and correcting itself.
 
 /* ── boot ────────────────────────────────────────────────────────────── */
 function restore() {

@@ -111,7 +111,7 @@ sync.
 - **Overlays** use native `<dialog>` plus `@starting-style` and
   `transition-behavior: allow-discrete` for entry/exit animations.
 
-Two things worth knowing if you edit the CSS:
+Three things worth knowing if you edit the CSS:
 
 - `[hidden] { display: none !important }` is load-bearing. Author `display` rules
   outrank the UA's `[hidden]` rule, so any element toggled via the `hidden`
@@ -119,6 +119,14 @@ Two things worth knowing if you edit the CSS:
 - `dialog { margin: auto }` is restored explicitly in the reset layer. The
   universal `* { margin: 0 }` would otherwise override it, and modal dialogs stop
   centring.
+- Key labels are **generated content**, not text. `<kbd data-kbd="palette">` is
+  empty in the markup; its label comes from `kbd[data-kbd="palette"]::after`,
+  which is `Ctrl K` by default and overridden to `⌘K` under
+  `:root[data-os="apple"]`. The head script sets `data-os` from
+  `navigator.userAgentData.platform` (falling back to `navigator.platform`, then
+  the UA string), which keeps the label correct on the *first* paint. Setting the
+  text from `app.js` instead worked, but flashed `⌘K` at Windows and Linux users
+  before correcting itself. Don't hardcode a modifier glyph in the markup.
 
 The task picker is a hand-built popup rather than a native `<select>`: a select's
 dropdown is drawn by the OS and ignores CSS, so it cannot be themed. The popup is
@@ -155,7 +163,7 @@ over a system font stack.
 
 ## Prompts
 
-The three prompts that shaped this app, verbatim.
+The four prompts that shaped this app, verbatim.
 
 **1 — the brief**
 
@@ -172,8 +180,13 @@ The three prompts that shaped this app, verbatim.
 
 > command toggle theme not working
 
-The three items in the second prompt each arrived with a screenshot showing the
-defect; the other two prompts were text only. Spelling is reproduced as given.
+**4 — the platform inconsistency**
+
+> keyboard shortcut icons are inconsistent. some are windows, some are mac. make
+> it depends on the os
+
+Prompts 2 and 4 arrived with a screenshot showing the defect; the other two were
+text only. Spelling is reproduced as given.
 
 The second prompt found three real bugs, all confirmed by inspection rather than
 guesswork:
@@ -224,6 +237,36 @@ neither was reproduced in a browser (see *Known gaps*).
 One thing worth knowing before you add a command: never store a DOM method
 reference directly in `commands()`. It reads as shorthand and quietly loses the
 receiver. Use `run: () => el.foo.click()`.
+
+The fourth prompt arrived with a screenshot of the footer, and it was accurate.
+The cause was duplicated state: the header button's `<kbd>` carried an `id` that
+`app.js` rewrote per platform, while the footer hint strip's `<kbd>⌘K</kbd>` was
+hardcoded and never touched. Two renderings of one label, one of which was simply
+wrong on every non-Mac machine — a bug no amount of reading the theming code
+would reveal, since the theme layer was entirely innocent.
+
+Fixed by collapsing both to a single source of truth:
+
+- `<head>` sets `data-os="apple" | "other"` from `navigator.userAgentData.platform`
+  (falling back to `navigator.platform`, then the UA string).
+- The `<kbd>` is now empty in the markup and its label is generated content:
+  `kbd[data-kbd="palette"]::after`, `Ctrl K` by default and `⌘K` under
+  `:root[data-os="apple"]`.
+
+Generating the label in CSS rather than assigning `textContent` from `app.js` is
+the load-bearing part. `app.js` is a deferred module, so a JS swap would paint
+`⌘K` at Windows and Linux users first and correct itself a moment later — the
+same flash the head script already prevents for the theme. CSS resolves it
+before the first frame. Detection was also tightened at the same time: the old
+check was a bare `/mac|iphone|ipad/` against `navigator.userAgent`, and it now
+prefers the structured `userAgentData.platform` where the browser exposes it.
+
+`Ctrl K` is the base rule with no `data-os` override, so if the head script ever
+fails the label degrades to something sane rather than to empty.
+
+Verified against 11 real platform strings (Windows/macOS/Linux/Android/Chrome OS
+across Chrome, Firefox, Safari and Edge, plus iPadOS and iPhone) — but not seen
+in a browser; see *Known gaps*.
 
 ## Licence
 

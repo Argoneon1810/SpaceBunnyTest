@@ -20,6 +20,12 @@
     const dark = pref === 'dark' || (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   } catch {}
+  // Pick the platform's modifier glyph before first paint too, so Windows and
+  // Linux never render a Mac-style ⌘. Prefer the structured platform string and
+  // fall back to the UA; iPadOS reports itself as "Macintosh", which is correct
+  // here since it has a ⌘ keyboard. Styles read this via kbd[data-kbd]::after.
+  const platform = navigator.userAgentData?.platform || navigator.platform || navigator.userAgent;
+  document.documentElement.dataset.os = /mac|iphone|ipad|ipod/i.test(platform) ? 'apple' : 'other';
 </script>
 </head>
 <body>
@@ -80,7 +86,7 @@
     <button class="btn btn--ghost" id="cmdBtn" aria-label="Open command palette">
       <svg class="i" aria-hidden="true"><use href="#i-search"/></svg>
       <span class="hide-sm">Commands</span>
-      <kbd id="cmdKbd">⌘K</kbd>
+      <kbd data-kbd="palette"></kbd>
     </button>
     <button class="iconbtn" id="themeBtn" aria-label="Toggle colour theme">
       <svg class="i" aria-hidden="true"><use href="#i-moon"/></svg>
@@ -215,7 +221,7 @@
 <footer class="foot">
   <span>Everything stays on this device.</span>
   <span class="foot__keys" aria-hidden="true">
-    <kbd>Space</kbd> start · <kbd>R</kbd> reset · <kbd>S</kbd> skip · <kbd>T</kbd> theme · <kbd>⌘K</kbd> commands
+    <kbd>Space</kbd> start · <kbd>R</kbd> reset · <kbd>S</kbd> skip · <kbd>T</kbd> theme · <kbd data-kbd="palette"></kbd> commands
   </span>
 </footer>
 
