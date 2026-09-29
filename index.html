@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Cadence — focus studio</title>
+<meta name="description" content="A calm focus timer with tasks, insights and a command palette." />
+<meta name="color-scheme" content="dark light" />
+<meta name="theme-color" content="#0b0d14" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#f7f8fb" media="(prefers-color-scheme: light)" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%238b7bff'/%3E%3Cstop offset='1' stop-color='%23ff7ab8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='%230e1119'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='url(%23g)' stroke-width='3.5' stroke-linecap='round' stroke-dasharray='42 18' transform='rotate(-90 16 16)'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@500;700&display=swap" />
+<link rel="stylesheet" href="styles.css" />
+<script>
+  // Set theme before first paint to avoid a flash.
+  try {
+    const pref = localStorage.getItem('cadence.theme') || 'system';
+    const dark = pref === 'dark' || (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  } catch {}
+</script>
+</head>
+<body>
+
+<!-- ── icon sprite ─────────────────────────────────────────────────────── -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7.6 4.9v14.2a.8.8 0 0 0 1.22.68l11.4-7.1a.8.8 0 0 0 0-1.36l-11.4-7.1A.8.8 0 0 0 7.6 4.9Z" fill="currentColor"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6.2" y="4.6" width="4.1" height="14.8" rx="1.7" fill="currentColor"/><rect x="13.7" y="4.6" width="4.1" height="14.8" rx="1.7" fill="currentColor"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M3.6 12.4a8.4 8.4 0 1 0 3-6.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M3.2 4.1v4.7h4.7" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-skip" viewBox="0 0 24 24"><path d="M5.6 5.3v13.4a.7.7 0 0 0 1.07.6l9.5-6.7a.7.7 0 0 0 0-1.2l-9.5-6.7a.7.7 0 0 0-1.07.6Z" fill="currentColor"/><path d="M18.6 5v14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m7 10.2 5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.65 5.35l-1.56 1.56M6.91 17.09l-1.56 1.56M18.65 18.65l-1.56-1.56M6.91 6.91 5.35 5.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.4A8.6 8.6 0 0 1 9.6 4a8.6 8.6 0 1 0 10.4 10.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="8" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.8 4.4 4.2L19 6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V5.4A1.4 1.4 0 0 1 10.9 4h2.2a1.4 1.4 0 0 1 1.4 1.4V7M6.5 7l.8 11.4A1.7 1.7 0 0 0 9 20h6a1.7 1.7 0 0 0 1.7-1.6L17.5 7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6.4 6.4 17.6 17.6M17.6 6.4 6.4 17.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 3s5.2 3.6 5.2 8.4a5.2 5.2 0 0 1-10.4 0c0-1.6.7-2.9 1.6-3.9.2 1.2.9 2 1.8 2 1.2 0 1.8-1.1 1.8-6.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 1.8v3M12 19.2v3M22.2 12h-3M4.8 12h-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.4 2.5 4.8 13.1h5.6l-.8 8.4 8.6-10.6h-5.6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v10.5m0 0 4-4m-4 4-4-4M4.5 19h15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15.5V5m0 0 4 4m-4-4-4 4M4.5 19h15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M9 4.5H4.5V9M15 4.5h4.5V9M15 19.5h4.5V15M9 19.5H4.5V15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-empty" viewBox="0 0 64 64"><rect x="14" y="11" width="36" height="42" rx="6" fill="none" stroke="currentColor" stroke-width="2.2" opacity=".35"/><path d="M21 24h22M21 32h16M21 40h11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".35"/><circle cx="45" cy="45" r="13" fill="none" stroke="currentColor" stroke-width="2.2" opacity=".5"/><path d="m40.5 45.2 3.1 3.1 6-6.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity=".5"/></symbol>
+  </defs>
+</svg>
+
+<!-- ── ambient background ──────────────────────────────────────────────── -->
+<div class="ambient" aria-hidden="true">
+  <span class="ambient__blob ambient__blob--a"></span>
+  <span class="ambient__blob ambient__blob--b"></span>
+  <span class="ambient__blob ambient__blob--c"></span>
+  <span class="ambient__grain"></span>
+</div>
+
+<a class="skip" href="#timerCard">Skip to timer</a>
+
+<!-- ── header ──────────────────────────────────────────────────────────── -->
+<header class="topbar">
+  <div class="brand">
+    <span class="brand__mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="none" stroke="url(#g)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="42 18" transform="rotate(-90 16 16)"/><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--brand-a)"/><stop offset="1" stop-color="var(--brand-b)"/></linearGradient></defs></svg>
+    </span>
+    <span class="brand__text">
+      <strong>Cadence</strong>
+      <small>focus studio</small>
+    </span>
+  </div>
+
+  <div class="topbar__actions">
+    <div class="pill pill--streak" id="streakPill" title="Consecutive days with at least one focus session">
+      <svg class="i" aria-hidden="true"><use href="#i-flame"/></svg>
+      <span data-streak>0</span><span class="pill__label">day streak</span>
+    </div>
+    <button class="btn btn--ghost" id="cmdBtn" aria-label="Open command palette">
+      <svg class="i" aria-hidden="true"><use href="#i-search"/></svg>
+      <span class="hide-sm">Commands</span>
+      <kbd id="cmdKbd">⌘K</kbd>
+    </button>
+    <button class="iconbtn" id="themeBtn" aria-label="Toggle colour theme">
+      <svg class="i" aria-hidden="true"><use href="#i-moon"/></svg>
+    </button>
+    <button class="iconbtn" id="settingsBtn" aria-label="Open settings">
+      <svg class="i" aria-hidden="true"><use href="#i-sliders"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="shell">
+  <!-- ── timer ─────────────────────────────────────────────────────────── -->
+  <section class="card timer" id="timerCard" data-mode="focus" aria-labelledby="modeLabel">
+    <div class="timer__top">
+      <div class="segmented" role="tablist" aria-label="Timer mode">
+        <button role="tab" class="segmented__btn" data-set-mode="focus" aria-selected="true">Focus</button>
+        <button role="tab" class="segmented__btn" data-set-mode="short" aria-selected="false">Short</button>
+        <button role="tab" class="segmented__btn" data-set-mode="long" aria-selected="false">Long</button>
+        <span class="segmented__thumb" aria-hidden="true"></span>
+      </div>
+      <button class="iconbtn iconbtn--ghost" id="zenBtn" aria-pressed="false" aria-label="Zen mode">
+        <svg class="i" aria-hidden="true"><use href="#i-expand"/></svg>
+      </button>
+    </div>
+
+    <div class="ring" id="ring">
+      <span class="ring__halo" aria-hidden="true"></span>
+      <svg class="ring__svg" viewBox="0 0 240 240" aria-hidden="true">
+        <defs>
+          <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop class="ring__s1" offset="0%" />
+            <stop class="ring__s2" offset="100%" />
+          </linearGradient>
+        </defs>
+        <circle class="ring__track" cx="120" cy="120" r="110" />
+        <circle class="ring__bar" id="ringBar" cx="120" cy="120" r="110" />
+      </svg>
+      <div class="ring__center">
+        <p class="timer__mode" id="modeLabel">
+          <span class="timer__dot" aria-hidden="true"></span>Focus
+        </p>
+        <div class="timer__clock" id="clock" role="timer">25:00</div>
+        <div class="taskpick" id="taskPickWrap" data-active="false">
+          <button type="button" class="taskpick__btn" id="taskPickBtn"
+                  aria-haspopup="listbox" aria-expanded="false" aria-controls="taskPickMenu">
+            <svg class="i" aria-hidden="true"><use href="#i-target"/></svg>
+            <span class="taskpick__label" id="taskPickLabel">No task selected</span>
+            <svg class="i taskpick__chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="timer__controls">
+      <button class="iconbtn iconbtn--lg" id="resetBtn" aria-label="Reset timer">
+        <svg class="i" aria-hidden="true"><use href="#i-reset"/></svg>
+      </button>
+      <button class="btn btn--primary btn--xl" id="toggleBtn">
+        <svg class="i" aria-hidden="true"><use href="#i-play"/></svg>
+        <span id="toggleLabel">Start focus</span>
+      </button>
+      <button class="iconbtn iconbtn--lg" id="skipBtn" aria-label="Skip to next interval">
+        <svg class="i" aria-hidden="true"><use href="#i-skip"/></svg>
+      </button>
+    </div>
+
+    <div class="dots" id="dots" role="img" aria-label="0 of 4 sessions completed this round"></div>
+    <p class="visually-hidden" id="live" aria-live="polite"></p>
+  </section>
+
+  <!-- ── side column ───────────────────────────────────────────────────── -->
+  <div class="col">
+    <section class="card tasks" aria-labelledby="tasksHeading">
+      <header class="card__head">
+        <h2 id="tasksHeading">Tasks <span class="count" id="taskCount">0</span></h2>
+        <div class="filters" id="filters" role="group" aria-label="Filter tasks">
+          <button class="filters__btn" data-filter="all" aria-pressed="true">All</button>
+          <button class="filters__btn" data-filter="active" aria-pressed="false">Active</button>
+          <button class="filters__btn" data-filter="done" aria-pressed="false">Done</button>
+        </div>
+      </header>
+
+      <form class="taskform" id="taskForm" autocomplete="off">
+        <label class="visually-hidden" for="taskInput">New task</label>
+        <input class="taskform__input" id="taskInput" name="task" placeholder="What are you working on?" maxlength="140" />
+        <button class="btn btn--soft" type="submit">
+          <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>
+          <span class="hide-sm">Add</span>
+        </button>
+      </form>
+
+      <ul class="tasklist" id="taskList"></ul>
+
+      <div class="empty" id="taskEmpty" hidden>
+        <svg class="empty__art" aria-hidden="true"><use href="#i-empty"/></svg>
+        <p><strong>Nothing here yet</strong></p>
+        <p class="empty__hint">Add a task above, then start a session to earn the credit.</p>
+      </div>
+
+      <footer class="tasks__foot" id="tasksFoot" hidden>
+        <span id="tasksFootText"></span>
+        <button class="linkbtn" id="clearDone">Clear done</button>
+      </footer>
+    </section>
+
+    <section class="card insights" aria-labelledby="insightsHeading">
+      <header class="card__head">
+        <h2 id="insightsHeading">Insights</h2>
+        <span class="muted" id="weekLabel">last 7 days</span>
+      </header>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="stat__value" data-today>0</span>
+          <span class="stat__label">min today</span>
+        </div>
+        <div class="stat">
+          <span class="stat__value" data-week>0m</span>
+          <span class="stat__label">this week</span>
+        </div>
+        <div class="stat">
+          <span class="stat__value" data-sessions>0</span>
+          <span class="stat__label">sessions</span>
+        </div>
+      </div>
+
+      <div class="chart" id="chart" role="img" aria-label="Focus minutes over the last seven days"></div>
+    </section>
+  </div>
+</main>
+
+<footer class="foot">
+  <span>Everything stays on this device.</span>
+  <span class="foot__keys" aria-hidden="true">
+    <kbd>Space</kbd> start · <kbd>R</kbd> reset · <kbd>S</kbd> skip · <kbd>T</kbd> theme · <kbd>⌘K</kbd> commands
+  </span>
+</footer>
+
+<!-- ── command palette ─────────────────────────────────────────────────── -->
+<dialog class="palette" id="palette">
+  <div class="palette__search">
+    <svg class="i" aria-hidden="true"><use href="#i-search"/></svg>
+    <input id="paletteInput" placeholder="Type a command…" aria-label="Command palette" autocomplete="off" spellcheck="false" />
+    <kbd>esc</kbd>
+  </div>
+  <ul class="palette__list" id="paletteList" role="listbox" aria-label="Commands"></ul>
+  <div class="palette__foot">
+    <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+    <span><kbd>↵</kbd> run</span>
+  </div>
+</dialog>
+
+<!-- ── settings ────────────────────────────────────────────────────────── -->
+<dialog class="sheet" id="settings">
+  <header class="sheet__head">
+    <h2>Settings</h2>
+    <button class="iconbtn iconbtn--ghost" id="settingsClose" aria-label="Close settings">
+      <svg class="i" aria-hidden="true"><use href="#i-close"/></svg>
+    </button>
+  </header>
+
+  <div class="sheet__body">
+    <section class="group">
+      <h3>Intervals</h3>
+      <div class="row">
+        <label class="row__label" for="setFocus">Focus</label>
+        <div class="stepper">
+          <button type="button" data-step="setFocus" data-dir="-1" aria-label="Decrease focus minutes">−</button>
+          <input id="setFocus" type="number" min="1" max="180" step="1" />
+          <button type="button" data-step="setFocus" data-dir="1" aria-label="Increase focus minutes">+</button>
+        </div>
+        <span class="row__unit">min</span>
+      </div>
+      <div class="row">
+        <label class="row__label" for="setShort">Short break</label>
+        <div class="stepper">
+          <button type="button" data-step="setShort" data-dir="-1" aria-label="Decrease short break minutes">−</button>
+          <input id="setShort" type="number" min="1" max="60" step="1" />
+          <button type="button" data-step="setShort" data-dir="1" aria-label="Increase short break minutes">+</button>
+        </div>
+        <span class="row__unit">min</span>
+      </div>
+      <div class="row">
+        <label class="row__label" for="setLong">Long break</label>
+        <div class="stepper">
+          <button type="button" data-step="setLong" data-dir="-1" aria-label="Decrease long break minutes">−</button>
+          <input id="setLong" type="number" min="1" max="90" step="1" />
+          <button type="button" data-step="setLong" data-dir="1" aria-label="Increase long break minutes">+</button>
+        </div>
+        <span class="row__unit">min</span>
+      </div>
+      <div class="row">
+        <label class="row__label" for="setInterval">Long break every</label>
+        <div class="stepper">
+          <button type="button" data-step="setInterval" data-dir="-1" aria-label="Decrease sessions per round">−</button>
+          <input id="setInterval" type="number" min="2" max="8" step="1" />
+          <button type="button" data-step="setInterval" data-dir="1" aria-label="Increase sessions per round">+</button>
+        </div>
+        <span class="row__unit">sessions</span>
+      </div>
+    </section>
+
+    <section class="group">
+      <h3>Behaviour</h3>
+      <div class="row">
+        <label class="row__label" for="setTheme">Appearance</label>
+        <select id="setTheme" class="select">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+      <div class="row">
+        <span class="row__label" id="lblSound">Chime on complete</span>
+        <button class="switch" id="setSound" role="switch" aria-checked="true" aria-labelledby="lblSound"><span class="switch__dot"></span></button>
+      </div>
+      <div class="row">
+        <span class="row__label" id="lblAuto">Auto-start next interval</span>
+        <button class="switch" id="setAuto" role="switch" aria-checked="false" aria-labelledby="lblAuto"><span class="switch__dot"></span></button>
+      </div>
+    </section>
+
+    <section class="group">
+      <h3>Data</h3>
+      <div class="row row--wrap">
+        <button class="btn btn--soft" id="exportBtn"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg> Export</button>
+        <button class="btn btn--soft" id="importBtn"><svg class="i" aria-hidden="true"><use href="#i-upload"/></svg> Import</button>
+        <button class="btn btn--danger" id="resetDataBtn">Reset everything</button>
+        <input type="file" id="importFile" accept="application/json" hidden />
+      </div>
+    </section>
+  </div>
+</dialog>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<noscript>
+  <p style="max-width:60ch;margin:4rem auto;padding:0 1.5rem;font:400 1rem/1.6 system-ui">
+    Cadence needs JavaScript for the timer, tasks and insights. Please enable it and reload.
+  </p>
+</noscript>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
