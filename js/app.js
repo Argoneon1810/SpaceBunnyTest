@@ -715,8 +715,8 @@ function commands() {
         const removed = clearDone();
         toast({ title: removed.length ? `Cleared ${removed.length} task${removed.length > 1 ? 's' : ''}` : 'Nothing to clear', icon: 'i-check' });
       } },
-    { group: 'View', title: 'Toggle theme', icon: 'i-moon', hint: 'T', keywords: 'dark light appearance', run: el.themeBtn.click },
-    { group: 'View', title: 'Open settings', icon: 'i-sliders', hint: ',', run: el.settingsBtn.click },
+    { group: 'View', title: 'Toggle theme', icon: 'i-moon', hint: 'T', keywords: 'dark light appearance', run: () => el.themeBtn.click() },
+    { group: 'View', title: 'Open settings', icon: 'i-sliders', hint: ',', run: () => el.settingsBtn.click() },
     { group: 'Data', title: 'Export data as JSON', icon: 'i-download', run: () => $('#exportBtn').click() },
     { group: 'Data', title: 'Import data from JSON', icon: 'i-upload', run: () => $('#importBtn').click() },
     { group: 'Data', title: 'Reset all data', icon: 'i-trash', keywords: 'danger delete', run: () => $('#resetDataBtn').click() },
@@ -760,6 +760,9 @@ addEventListener('keydown', (e) => {
       break;
     case 'z':
       toggleZen();
+      break;
+    case ',':
+      el.settingsBtn.click();
       break;
     case 'n':
       e.preventDefault();

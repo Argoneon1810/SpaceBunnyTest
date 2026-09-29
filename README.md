@@ -67,6 +67,7 @@ WebAudio-synthesised chimes (no audio files).
 | `S` | Skip to the next interval |
 | `T` | Toggle theme |
 | `Z` | Zen mode |
+| `,` | Open settings |
 | `N` | Jump to the new-task input |
 | `1` `2` `3` | Focus / short break / long break |
 | `Ctrl`/`⌘`+`K`, `/` | Command palette |
@@ -147,11 +148,14 @@ over a system font stack.
 - Verified by static analysis and headless screenshots of the initial render,
   both themes, the task picker, the command palette, and the reported layout
   bugs. The countdown, shortcuts, persistence round-trip, and import/export have
-  not been exercised end-to-end in a browser.
+  not been exercised end-to-end in a browser. In particular the command-palette
+  fix and the `,` shortcut were traced by inspection and a Node harness modelling
+  the WebIDL receiver check, not by clicking them — a browser pass over the
+  palette is still worth doing.
 
 ## Prompts
 
-The two prompts that shaped this app, verbatim.
+The three prompts that shaped this app, verbatim.
 
 **1 — the brief**
 
@@ -164,8 +168,12 @@ The two prompts that shaped this app, verbatim.
 > 2. improper icon shape
 > 3. wrong command pannel position
 
-Each of the three arrived with a screenshot showing the defect. Spelling is
-reproduced as given.
+**3 — the reported symptom**
+
+> command toggle theme not working
+
+The three items in the second prompt each arrived with a screenshot showing the
+defect; the other two prompts were text only. Spelling is reproduced as given.
 
 The second prompt found three real bugs, all confirmed by inspection rather than
 guesswork:
@@ -184,6 +192,38 @@ attribute was being defeated by author `display` rules (the "Nothing here yet"
 state rendered *below* three real tasks), and the segmented control's indicator
 was never sized in JS, leaving the selected tab with a 2px sliver instead of a
 pill.
+
+The third prompt reported one symptom and turned up two bugs, only one of which
+was the reported one. The scope mattered: "toggle theme" turned out to work
+perfectly via the header button and the `T` key, so the defect had to be
+localised to the command palette rather than to theming.
+
+1. **Silent palette failure** — two registry entries stored a bare method
+   reference:
+
+   ```js
+   { group: 'View', title: 'Toggle theme', run: el.themeBtn.click }
+   ```
+
+   The palette dispatches with a plain call (`cmd.run()` in `palette.js`), so
+   `this` was the command descriptor, not the button. `HTMLElement.prototype.click`
+   is a WebIDL operation that validates its receiver, so it threw
+   `TypeError: Illegal invocation`. Because the palette closed *before* invoking,
+   the visible result was the dialog dismissing itself and nothing else happening
+   — a dead menu item with no error surfaced to the user. Wrapped in arrow
+   functions like every other entry in the registry.
+2. **Phantom shortcut hint** — the adjacent "Open settings" entry advertised a `,`
+   hint that no key handler ever implemented. The handler was added rather than
+   the hint removed, so the UI stopped lying.
+
+Neither bug was reachable by reading the theme code alone, and the first is
+invisible in normal use unless you open the palette and pick the item. Both were
+confirmed by inspection plus a Node harness modelling the WebIDL receiver check;
+neither was reproduced in a browser (see *Known gaps*).
+
+One thing worth knowing before you add a command: never store a DOM method
+reference directly in `commands()`. It reads as shorthand and quietly loses the
+receiver. Use `run: () => el.foo.click()`.
 
 ## Licence
 
