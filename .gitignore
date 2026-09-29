@@ -1,0 +1,59 @@
+# Cadence has no dependencies and no build step, so there is very little to
+# ignore. What is here is the usual local noise.
+
+# Dependencies (none today, but a future `npm i` shouldn't be committed)
+node_modules/
+.pnp
+.pnp.js
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Test / coverage output
+coverage/
+.nyc_output/
+
+# Build output (not used — the app ships as source)
+dist/
+build/
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS cruft — this project is usually edited on Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+ehthumbs_vista.db
+Icon?
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.TemporaryItems
+
+# Local scratch
+*.local
+.env.local
